@@ -1,11 +1,16 @@
+import {
+	Async,
+	Card,
+	Chart,
+	type ChartSeries,
+	Page,
+} from "@aomc-server/block-ui";
+import { formatHours, formatInt } from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type { Activity, ActivitySlice } from "../../../shared/api";
-import { hours, int } from "../format";
 import { useFetch } from "../hooks";
 import { serverColor, serverName, statsQuery } from "../state";
-import { Chart, type ChartSeries } from "../ui/Chart";
-import { Async, Card, Page } from "../ui/common";
-import { RangePicker } from "../ui/RangePicker";
+import { DateRange } from "../ui/DateRange";
 
 type Metric = "hours" | "players" | "sessions";
 const METRICS: { id: Metric; label: string }[] = [
@@ -35,7 +40,7 @@ export function ActivityPage() {
 	const state = useFetch<Activity>("/api/activity", statsQuery());
 
 	return (
-		<Page title="Activity" actions={<RangePicker />}>
+		<Page embedded stack title="Activity" actions={<DateRange />}>
 			<Async state={state}>
 				{(a) => (
 					<>
@@ -58,7 +63,7 @@ export function ActivityPage() {
 								xs={a.daily.map((_, i) => i)}
 								series={perServer(a, (sl) => sl.daily.map((d) => d[metric]))}
 								formatY={(v) =>
-									metric === "hours" ? hours(v) : int(Math.round(v))
+									metric === "hours" ? formatHours(v) : formatInt(Math.round(v))
 								}
 								formatX={(i) => a.daily[i]?.date.slice(5) ?? ""}
 								formatTip={(i) => a.daily[i]?.date ?? ""}
@@ -66,10 +71,10 @@ export function ActivityPage() {
 									const d = a.daily[i];
 									if (!d) return null;
 									return metric === "hours"
-										? `${hours(d.hours)} in total`
+										? `${formatHours(d.hours)} in total`
 										: metric === "players"
-											? `${int(d.players)} distinct players in total`
-											: `${int(d.sessions)} sessions in total`;
+											? `${formatInt(d.players)} distinct players in total`
+											: `${formatInt(d.sessions)} sessions in total`;
 								}}
 							/>
 						</Card>
@@ -83,7 +88,7 @@ export function ActivityPage() {
 								formatY={(v) => v.toFixed(1)}
 								formatX={(h) => `${String(h).padStart(2, "0")}:00`}
 								note={(i) =>
-									`${int(a.hourOfDay[i]?.sessions ?? 0)} sessions started`
+									`${formatInt(a.hourOfDay[i]?.sessions ?? 0)} sessions started`
 								}
 							/>
 						</Card>
@@ -92,10 +97,10 @@ export function ActivityPage() {
 								kind="bars"
 								xs={a.lengths.map((_, i) => i)}
 								series={perServer(a, (sl) => sl.lengths.map((l) => l.count))}
-								formatY={(v) => int(Math.round(v))}
+								formatY={(v) => formatInt(Math.round(v))}
 								formatX={(i) => a.lengths[i]?.label ?? ""}
 								note={(i) =>
-									`${int(a.lengths[i]?.count ?? 0)} sessions in total`
+									`${formatInt(a.lengths[i]?.count ?? 0)} sessions in total`
 								}
 							/>
 						</Card>

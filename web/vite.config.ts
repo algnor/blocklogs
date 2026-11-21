@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import { prepaintScript } from "@aomc-server/block-ui/theme";
 import preact from "@preact/preset-vite";
 import { defineConfig } from "vite";
 
@@ -6,7 +7,24 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
 	root,
-	plugins: [preact()],
+	plugins: [
+		preact(),
+		{
+			// Applies the saved mode and style before the first paint (see settings.ts).
+			name: "prepaint",
+			transformIndexHtml: () => [
+				{
+					tag: "script",
+					injectTo: "head-prepend",
+					children: prepaintScript({ storageKey: "blocklogs.settings" }),
+				},
+			],
+		},
+	],
+	resolve: {
+		// The library has its own copy of its peers in node_modules; the app must have only one.
+		dedupe: ["preact", "@preact/signals"],
+	},
 	server: {
 		proxy: { "/api": "http://localhost:3000" },
 	},

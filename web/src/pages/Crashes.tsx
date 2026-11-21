@@ -1,21 +1,22 @@
-import { useEffect, useState } from "preact/hooks";
-import type { CrashList, CrashRow } from "../../../shared/api";
-import { getText } from "../api";
-import { shortTs } from "../format";
-import { useFetch, usePageOffset } from "../hooks";
-import { statsQuery } from "../state";
 import {
 	Async,
-	Dot,
 	Empty,
 	ErrorBox,
 	Loading,
+	Modal,
 	Page,
 	Pager,
 	rowKey,
-} from "../ui/common";
-import { Modal } from "../ui/Modal";
-import { toast } from "../ui/Toast";
+	toast,
+} from "@aomc-server/block-ui";
+import { formatShortTs } from "@aomc-server/block-ui/format";
+import { usePageOffset } from "@aomc-server/block-ui/hooks";
+import { useEffect, useState } from "preact/hooks";
+import type { CrashList, CrashRow } from "../../../shared/api";
+import { getText } from "../api";
+import { useFetch } from "../hooks";
+import { statsQuery } from "../state";
+import { ServerDot } from "../ui/common";
 
 const LIMIT = 50;
 
@@ -37,6 +38,7 @@ function RawModal(props: { crash: CrashRow; onClose: () => void }) {
 		<Modal
 			title={props.crash.name}
 			wide
+			closeOnBackdrop
 			onClose={props.onClose}
 			footer={
 				<>
@@ -47,9 +49,9 @@ function RawModal(props: { crash: CrashRow; onClose: () => void }) {
 						onClick={async () => {
 							try {
 								await navigator.clipboard.writeText(text ?? "");
-								toast("Copied crash report");
+								toast("Copied crash report", "ok");
 							} catch {
-								toast("Copy failed", "err");
+								toast("Copy failed", "error");
 							}
 						}}
 					>
@@ -83,7 +85,7 @@ export function CrashesPage() {
 	});
 
 	return (
-		<Page title="Crashes">
+		<Page embedded stack title="Crashes">
 			<Async state={state}>
 				{(d) =>
 					d.rows.length === 0 ? (
@@ -91,7 +93,7 @@ export function CrashesPage() {
 					) : (
 						<>
 							<div class="table-wrap">
-								<table class="stats-table">
+								<table class="table">
 									<thead>
 										<tr>
 											<th>Time (UTC)</th>
@@ -112,9 +114,9 @@ export function CrashesPage() {
 												onClick={() => setSel(c)}
 												onKeyDown={(e) => rowKey(e, () => setSel(c))}
 											>
-												<td class="nowrap">{shortTs(c.ts)}</td>
+												<td class="nowrap">{formatShortTs(c.ts)}</td>
 												<td>
-													<Dot id={c.serverId} label />
+													<ServerDot id={c.serverId} label />
 												</td>
 												<td>{c.side}</td>
 												<td>{c.loader ?? "-"}</td>

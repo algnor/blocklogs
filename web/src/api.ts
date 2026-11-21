@@ -25,6 +25,7 @@ async function request(
 	method: string,
 	url: string,
 	body?: unknown,
+	signal?: AbortSignal,
 ): Promise<Response> {
 	let res: Response;
 	try {
@@ -33,6 +34,7 @@ async function request(
 			headers:
 				body === undefined ? undefined : { "content-type": "application/json" },
 			body: body === undefined ? undefined : JSON.stringify(body),
+			signal,
 		});
 	} catch {
 		throw new ApiError("Cannot reach the backend", 0);
@@ -48,8 +50,11 @@ async function request(
 	return res;
 }
 
-export async function getJson<T>(url: string): Promise<T> {
-	return (await request("GET", url)).json() as Promise<T>;
+export async function getJson<T>(
+	url: string,
+	signal?: AbortSignal,
+): Promise<T> {
+	return (await request("GET", url, undefined, signal)).json() as Promise<T>;
 }
 
 export async function getText(url: string): Promise<string> {

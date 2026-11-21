@@ -1,29 +1,10 @@
+import { Card, ConnectionBadge, Dot, Toggle } from "@aomc-server/block-ui";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { activityLog, connection } from "../live";
 import { serverColor } from "../state";
-import { Card, Check } from "./common";
 
 const time = (iso: string) =>
 	new Date(iso).toLocaleTimeString([], { hour12: false });
-
-/** Small "live / reconnecting" indicator for the stream. */
-export function ConnectionBadge() {
-	const c = connection.value;
-	const label =
-		c === "live" ? "Live" : c === "down" ? "Reconnecting…" : "Connecting…";
-	return (
-		<span
-			class={`conn conn-${c}`}
-			title={
-				c === "live"
-					? "Updates arrive as they happen."
-					: "Not connected to the live stream; refreshing every few seconds instead."
-			}
-		>
-			<span class="conn-dot" /> {label}
-		</span>
-	);
-}
 
 /** The server's activity log, newest at the bottom, following it unless you scroll up. */
 export function ActivityLog(props: { serverIds: number[] }) {
@@ -51,10 +32,13 @@ export function ActivityLog(props: { serverIds: number[] }) {
 			title="Activity"
 			actions={
 				<>
-					<ConnectionBadge />
-					<Check checked={problemsOnly} onChange={setProblemsOnly}>
-						Problems only
-					</Check>
+					<ConnectionBadge status={connection.value} />
+					<Toggle
+						inline
+						checked={problemsOnly}
+						onChange={setProblemsOnly}
+						label="Problems only"
+					/>
 					<button
 						type="button"
 						class="btn small"
@@ -87,12 +71,10 @@ export function ActivityLog(props: { serverIds: number[] }) {
 				{entries.map((e) => (
 					<div key={e.id} class={`activity-row lvl-${e.level}`}>
 						<span class="activity-ts mono">{time(e.ts)}</span>
-						<span
-							class="dot"
-							style={{
-								background:
-									e.serverId === null ? "var(--s4)" : serverColor(e.serverId),
-							}}
+						<Dot
+							color={
+								e.serverId === null ? "var(--s4)" : serverColor(e.serverId)
+							}
 						/>
 						<span class="activity-msg">{e.message}</span>
 					</div>

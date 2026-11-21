@@ -7,4 +7,4 @@ import { join } from "node:path";
 for (const key of Object.keys(process.env)) {
 	if (key.startsWith("PTERO_")) delete process.env[key];
 }
-process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "logs-parser-test-"));
+process.env.DATA_DIR = mkdtempSync(join(tmpdir(), "blocklogs-test-"));

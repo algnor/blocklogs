@@ -36,4 +36,4 @@ Bun.serve({
 	fetch: app.fetch,
 	idleTimeout: 120,
 });
-console.log(`logs-parser listening on http://${config.host}:${config.port}`);
+console.log(`blocklogs listening on http://${config.host}:${config.port}`);

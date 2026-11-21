@@ -1,3 +1,24 @@
+import {
+	Async,
+	Card,
+	Confirm,
+	Empty,
+	ErrorBox,
+	Field,
+	Loading,
+	Modal,
+	Page,
+	Pager,
+	Toggle,
+	toast,
+} from "@aomc-server/block-ui";
+import {
+	formatBytes,
+	formatInt,
+	formatRelative,
+	formatShortTs,
+} from "@aomc-server/block-ui/format";
+import { MODES, STYLES } from "@aomc-server/block-ui/theme";
 import { useState } from "preact/hooks";
 import type {
 	AppStatus,
@@ -8,39 +29,26 @@ import type {
 	ServerSummary,
 } from "../../../shared/api";
 import { send } from "../api";
-import { bytes, int, relative, shortTs } from "../format";
 import { useFetch } from "../hooks";
+import { settings, updateSettings } from "../settings";
 import { refreshServers, servers, serversError } from "../state";
-import {
-	Async,
-	Card,
-	Check,
-	Dot,
-	Empty,
-	ErrorBox,
-	Field,
-	Loading,
-	Page,
-	Pager,
-} from "../ui/common";
-import { Confirm, Modal } from "../ui/Modal";
-import { toast } from "../ui/Toast";
+import { ServerDot } from "../ui/common";
 
 function StatusCard(props: { status: AppStatus }) {
 	const s = props.status;
 	return (
 		<Card title="Status">
-			<div class="kv wide-kv">
+			<div class="kv left">
 				<span>Pterodactyl panel</span>
-				<b class={s.panelConfigured ? "ok" : "err"}>
+				<b class={s.panelConfigured ? "success" : "error-text"}>
 					{s.panelConfigured ? `configured (${s.panelUrl})` : "not configured"}
 				</b>
 				<span>SFTP login</span>
-				<b class={s.sftpConfigured ? "ok" : "err"}>
+				<b class={s.sftpConfigured ? "success" : "error-text"}>
 					{s.sftpConfigured ? "configured" : "not configured"}
 				</b>
 				<span>Geo database</span>
-				<b class={s.geoReady ? "ok" : "err"}>
+				<b class={s.geoReady ? "success" : "error-text"}>
 					{s.geoReady ? "ready" : "not ready"}
 				</b>
 				<span>Games</span>
@@ -131,7 +139,7 @@ function EditModal(props: {
 			if (props.server)
 				await send("PATCH", `/api/servers/${props.server.id}`, body);
 			else await send("POST", "/api/servers", body);
-			toast(props.server ? "Server updated" : "Server added");
+			toast(props.server ? "Server updated" : "Server added", "ok");
 			await refreshServers();
 			props.onClose();
 		} catch (e) {
@@ -143,6 +151,7 @@ function EditModal(props: {
 	return (
 		<Modal
 			title={props.server ? `Edit ${props.server.name}` : "Add server"}
+			closeOnBackdrop
 			onClose={props.onClose}
 			footer={
 				<>
@@ -236,9 +245,12 @@ function EditModal(props: {
 						onInput={(e) => set("syncIntervalMin", e.currentTarget.value)}
 					/>
 				</Field>
-				<Check checked={f.enabled} onChange={(v) => set("enabled", v)}>
-					Enabled
-				</Check>
+				<Toggle
+					inline
+					checked={f.enabled}
+					onChange={(v) => set("enabled", v)}
+					label="Enabled"
+				/>
 				<button type="submit" hidden />
 			</form>
 		</Modal>
@@ -254,7 +266,12 @@ function FilesModal(props: { server: ServerSummary; onClose: () => void }) {
 		offset,
 	});
 	return (
-		<Modal title={`Files: ${props.server.name}`} wide onClose={props.onClose}>
+		<Modal
+			title={`Files: ${props.server.name}`}
+			wide
+			closeOnBackdrop
+			onClose={props.onClose}
+		>
 			<div class="toolbar">
 				<select
 					aria-label="Kind"
@@ -277,7 +294,7 @@ function FilesModal(props: { server: ServerSummary; onClose: () => void }) {
 					) : (
 						<>
 							<div class="table-wrap">
-								<table class="stats-table">
+								<table class="table">
 									<thead>
 										<tr>
 											<th>Name</th>
@@ -294,17 +311,17 @@ function FilesModal(props: { server: ServerSummary; onClose: () => void }) {
 											<tr key={r.id}>
 												<td class="mono">{r.name}</td>
 												<td>{r.kind}</td>
-												<td class="num">{bytes(r.size)}</td>
+												<td class="num">{formatBytes(r.size)}</td>
 												<td class="num">
-													{r.lines === null ? "-" : int(r.lines)}
+													{r.lines === null ? "-" : formatInt(r.lines)}
 												</td>
 												<td class="num">
-													{r.events === null ? "-" : int(r.events)}
+													{r.events === null ? "-" : formatInt(r.events)}
 												</td>
-												<td class={r.error ? "err wrap" : ""}>
+												<td class={r.error ? "error-text wrap" : ""}>
 													{r.error ?? ""}
 												</td>
-												<td>{shortTs(r.ingestedAt)}</td>
+												<td>{formatShortTs(r.ingestedAt)}</td>
 											</tr>
 										))}
 									</tbody>
@@ -341,19 +358,20 @@ function ImportModal(props: { onClose: () => void }) {
 				identifiers: [...picked],
 			})) ?? { imported: [], skipped: [] };
 			const n = res.imported.length;
-			if (n > 0) toast(`Imported ${n} server${n === 1 ? "" : "s"}`);
-			for (const s of res.skipped) toast(`${s.name}: ${s.reason}`, "err");
+			if (n > 0) toast(`Imported ${n} server${n === 1 ? "" : "s"}`, "ok");
+			for (const s of res.skipped) toast(`${s.name}: ${s.reason}`, "error");
 			await refreshServers();
 			if (res.skipped.length === 0) props.onClose();
 			else setBusy(false);
 		} catch (e) {
-			toast(`Import failed: ${(e as Error).message}`, "err");
+			toast(`Import failed: ${(e as Error).message}`, "error");
 			setBusy(false);
 		}
 	};
 	return (
 		<Modal
 			title="Import from panel"
+			closeOnBackdrop
 			onClose={props.onClose}
 			footer={
 				<>
@@ -379,36 +397,40 @@ function ImportModal(props: { onClose: () => void }) {
 						<ul class="plain-list import-list">
 							{rows.map((r) => (
 								<li key={r.identifier}>
-									<Check
+									<Toggle
+										inline
 										checked={r.imported || picked.has(r.identifier)}
 										disabled={r.imported || r.suspended}
 										onChange={(v) => toggle(r.identifier, v)}
-									>
-										<b>{r.name}</b>{" "}
-										<span class="muted">
-											{r.identifier} · {r.node}
-										</span>
-										{r.imported && <span class="badge ok">imported</span>}
-										{r.suspended && (
-											<span
-												class="badge error"
-												title="The panel does not let a suspended server's files be read."
-											>
-												suspended
-											</span>
-										)}
-										{r.status && !r.suspended && (
-											<span
-												class="badge running"
-												title="The panel's state for this server."
-											>
-												{r.status.replace(/_/g, " ")}
-											</span>
-										)}
-										{r.description && (
-											<div class="muted small-text">{r.description}</div>
-										)}
-									</Check>
+										label={
+											<>
+												<b>{r.name}</b>{" "}
+												<span class="muted">
+													{r.identifier} · {r.node}
+												</span>{" "}
+												{r.imported && <span class="badge ok">imported</span>}
+												{r.suspended && (
+													<span
+														class="badge error"
+														title="The panel does not let a suspended server's files be read."
+													>
+														suspended
+													</span>
+												)}
+												{r.status && !r.suspended && (
+													<span
+														class="badge running"
+														title="The panel's state for this server."
+													>
+														{r.status.replace(/_/g, " ")}
+													</span>
+												)}
+												{r.description && (
+													<div class="muted small-text">{r.description}</div>
+												)}
+											</>
+										}
+									/>
 								</li>
 							))}
 						</ul>
@@ -425,6 +447,60 @@ type Dialog =
 	| { kind: "files"; server: ServerSummary }
 	| { kind: "import" };
 
+function AppearanceCard() {
+	const { mode, style } = settings.value;
+	return (
+		<Card title="Appearance">
+			<p class="muted small-text">Saved in this browser only.</p>
+			<fieldset class="mode-picker">
+				<legend class="label">Colours</legend>
+				<div class="segmented">
+					{MODES.map((m) => (
+						<button
+							key={m.id}
+							type="button"
+							class={`btn ${m.id === mode ? "active" : ""}`}
+							aria-pressed={m.id === mode}
+							onClick={() => updateSettings({ mode: m.id })}
+						>
+							{m.name}
+						</button>
+					))}
+				</div>
+			</fieldset>
+			<fieldset class="style-picker">
+				<legend class="label">Style</legend>
+				{STYLES.map((st) => (
+					<label
+						key={st.id}
+						class={`style-option ${st.id === style ? "selected" : ""}`}
+					>
+						<input
+							class="visually-hidden"
+							type="radio"
+							name="style"
+							value={st.id}
+							checked={st.id === style}
+							onChange={() => updateSettings({ style: st.id })}
+						/>
+						<span class="style-preview" data-style={st.id} aria-hidden="true">
+							<span class="preview-window">
+								<span class="preview-head">Players</span>
+								<span class="preview-body">
+									<span class="btn small">Sync</span>
+									<span class="btn small primary">Save</span>
+								</span>
+							</span>
+						</span>
+						<span class="style-name">{st.name}</span>
+						<span class="muted hint">{st.hint}</span>
+					</label>
+				))}
+			</fieldset>
+		</Card>
+	);
+}
+
 export function SettingsPage() {
 	const status = useFetch<AppStatus>("/api/status");
 	const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -434,10 +510,10 @@ export function SettingsPage() {
 	const reparse = async (s: ServerSummary) => {
 		try {
 			await send("POST", `/api/servers/${s.id}/reparse`);
-			toast(`Re-parsing ${s.name}`);
+			toast(`Re-parsing ${s.name}`, "ok");
 			await refreshServers();
 		} catch (e) {
-			toast(`Re-parse failed: ${(e as Error).message}`, "err");
+			toast(`Re-parse failed: ${(e as Error).message}`, "error");
 		}
 	};
 
@@ -445,15 +521,15 @@ export function SettingsPage() {
 		close();
 		try {
 			await send("DELETE", `/api/servers/${s.id}`);
-			toast(`Deleted ${s.name}`);
+			toast(`Deleted ${s.name}`, "ok");
 			await refreshServers();
 		} catch (e) {
-			toast(`Delete failed: ${(e as Error).message}`, "err");
+			toast(`Delete failed: ${(e as Error).message}`, "error");
 		}
 	};
 
 	return (
-		<Page title="Settings">
+		<Page embedded stack title="Settings">
 			<Async state={status}>{(s) => <StatusCard status={s} />}</Async>
 			<Card
 				title="Servers"
@@ -487,7 +563,7 @@ export function SettingsPage() {
 				{list && list.length === 0 && <Empty>No servers configured.</Empty>}
 				{list && list.length > 0 && (
 					<div class="table-wrap">
-						<table class="stats-table">
+						<table class="table">
 							<thead>
 								<tr>
 									<th>Name</th>
@@ -504,7 +580,7 @@ export function SettingsPage() {
 								{list.map((s) => (
 									<tr key={s.id}>
 										<td>
-											<Dot id={s.id} label />
+											<ServerDot id={s.id} label />
 											{!s.enabled && <span class="badge"> disabled</span>}
 										</td>
 										<td>{s.game}</td>
@@ -512,12 +588,12 @@ export function SettingsPage() {
 										<td class="mono wrap">{s.panelId ?? "-"}</td>
 										<td class="num">{s.syncIntervalMin}m</td>
 										<td>
-											{relative(s.lastSyncAt)}{" "}
+											{formatRelative(s.lastSyncAt)}{" "}
 											<span class={`badge ${s.lastSyncStatus ?? ""}`}>
 												{s.lastSyncStatus ?? "never"}
 											</span>
 										</td>
-										<td class="num">{int(s.files)}</td>
+										<td class="num">{formatInt(s.files)}</td>
 										<td class="actions">
 											<button
 												type="button"
@@ -559,6 +635,8 @@ export function SettingsPage() {
 					downloading again.
 				</p>
 			</Card>
+
+			<AppearanceCard />
 
 			{dialog?.kind === "edit" && (
 				<EditModal

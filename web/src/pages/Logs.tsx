@@ -1,11 +1,13 @@
+import { Async, Empty, Page, Pager, Tabs } from "@aomc-server/block-ui";
+import { formatElapsed, formatShortTs } from "@aomc-server/block-ui/format";
+import { useDebounced, usePageOffset } from "@aomc-server/block-ui/hooks";
 import { useState } from "preact/hooks";
 import type { MessageList, SessionList } from "../../../shared/api";
-import { duration, shortTs } from "../format";
-import { useDebounced, useFetch, usePageOffset } from "../hooks";
-import { loc, setQuery } from "../router";
+import { useFetch } from "../hooks";
+import { loc, navigate, setQuery } from "../router";
 import { statsQuery } from "../state";
-import { Async, Dot, Empty, Link, Page, Pager, PlayerLink } from "../ui/common";
-import { RangePicker } from "../ui/RangePicker";
+import { PlayerLink, ServerDot } from "../ui/common";
+import { DateRange } from "../ui/DateRange";
 
 const LIMIT = 100;
 const TABS = [
@@ -30,7 +32,7 @@ function Sessions(props: { player: string }) {
 				) : (
 					<>
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Player</th>
@@ -49,11 +51,11 @@ function Sessions(props: { player: string }) {
 												<PlayerLink name={s.player} />
 											</td>
 											<td>
-												<Dot id={s.serverId} label />
+												<ServerDot id={s.serverId} label />
 											</td>
-											<td>{shortTs(s.start)}</td>
-											<td>{shortTs(s.end)}</td>
-											<td class="num">{duration(s.secs)}</td>
+											<td>{formatShortTs(s.start)}</td>
+											<td>{formatShortTs(s.end)}</td>
+											<td class="num">{formatElapsed(s.secs)}</td>
 											<td>{s.closedBy}</td>
 											<td>{s.country ?? "-"}</td>
 										</tr>
@@ -95,7 +97,7 @@ function Messages(props: { type: "chat" | "cmd"; player: string; q: string }) {
 				) : (
 					<>
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Time (UTC)</th>
@@ -109,9 +111,9 @@ function Messages(props: { type: "chat" | "cmd"; player: string; q: string }) {
 								<tbody>
 									{d.rows.map((m) => (
 										<tr key={`${m.serverId}-${m.ts}-${m.player}-${m.text}`}>
-											<td class="nowrap">{shortTs(m.ts)}</td>
+											<td class="nowrap">{formatShortTs(m.ts)}</td>
 											<td>
-												<Dot id={m.serverId} label />
+												<ServerDot id={m.serverId} label />
 											</td>
 											<td>
 												<PlayerLink name={m.player} />
@@ -140,22 +142,19 @@ export function LogsPage(props: { tab: "sessions" | "chat" | "cmd" }) {
 	const [q, setQ] = useState("");
 	const dq = useDebounced(q.trim());
 	const dPlayer = useDebounced(player.trim());
+	const tabHref = (id: string) =>
+		`/logs/${id}${player ? `?player=${encodeURIComponent(player)}` : ""}`;
 	// Remount the list when a filter changes so pagination restarts at page one.
 	const listKey = `${props.tab}|${dq}|${dPlayer}`;
 
 	return (
-		<Page title="Logs" actions={<RangePicker />}>
-			<div class="tabs" role="tablist">
-				{TABS.map((t) => (
-					<Link
-						key={t.id}
-						to={`/logs/${t.id}${player ? `?player=${encodeURIComponent(player)}` : ""}`}
-						class={`tab ${props.tab === t.id ? "active" : ""}`}
-					>
-						{t.label}
-					</Link>
-				))}
-			</div>
+		<Page embedded stack title="Logs" actions={<DateRange />}>
+			<Tabs
+				label="Log"
+				value={props.tab}
+				tabs={TABS.map((t) => ({ ...t, href: tabHref(t.id) }))}
+				onChange={(id) => navigate(tabHref(id))}
+			/>
 			<div class="toolbar">
 				<input
 					type="search"

@@ -1,3 +1,5 @@
+import { ConnectionBadge, Page, Toasts, Toggle } from "@aomc-server/block-ui";
+import { connection } from "./live";
 import { ActivityPage } from "./pages/Activity";
 import { CrashesPage } from "./pages/Crashes";
 import { GeoPage } from "./pages/Geo";
@@ -8,15 +10,8 @@ import { PlayersPage } from "./pages/Players";
 import { ServerPage } from "./pages/Server";
 import { SettingsPage } from "./pages/Settings";
 import { loc, parseRoute } from "./router";
-import {
-	selectedServers,
-	serverColor,
-	servers,
-	setSelectedServers,
-} from "./state";
-import { ConnectionBadge } from "./ui/ActivityLog";
-import { Check, Link, Page } from "./ui/common";
-import { Toasts } from "./ui/Toast";
+import { selectedServers, servers, setSelectedServers } from "./state";
+import { Link, ServerDot } from "./ui/common";
 
 const NAV = [
 	{ to: "/", label: "Overview", page: "overview", also: "server" },
@@ -34,17 +29,21 @@ function ServerFilter() {
 	const all = sel.length === 0;
 	return (
 		<div class="server-filter">
-			<h2>Servers</h2>
+			<div class="section-title">Servers</div>
 			{!list && <p class="muted small-text">Loading…</p>}
 			{list && list.length === 0 && <p class="muted small-text">No servers.</p>}
 			{list && list.length > 0 && (
 				<>
-					<Check checked={all} onChange={() => setSelectedServers([])}>
-						All
-					</Check>
+					<Toggle
+						inline
+						checked={all}
+						onChange={() => setSelectedServers([])}
+						label="All"
+					/>
 					{list.map((s) => (
-						<Check
+						<Toggle
 							key={s.id}
+							inline
 							checked={all || sel.includes(s.id)}
 							onChange={(on) => {
 								const cur = all ? list.map((x) => x.id) : sel;
@@ -53,15 +52,16 @@ function ServerFilter() {
 									: cur.filter((id) => id !== s.id);
 								setSelectedServers(next.length === list.length ? [] : next);
 							}}
-						>
-							<span class="server-row">
-								<span class="dot" style={{ background: serverColor(s.id) }} />
-								<span class="server-name">{s.name}</span>
-								<span class="count" title="Players online">
-									{s.online.length}
+							label={
+								<span class="server-row">
+									<ServerDot id={s.id} />
+									<span class="server-name">{s.name}</span>
+									<span class="count" title="Players online">
+										{s.online.length}
+									</span>
 								</span>
-							</span>
-						</Check>
+							}
+						/>
 					))}
 				</>
 			)}
@@ -92,7 +92,7 @@ function Routes() {
 			return <SettingsPage />;
 		default:
 			return (
-				<Page title="Not found">
+				<Page embedded title="Not found">
 					<p class="muted">
 						There is no such page. <Link to="/">Back to the overview</Link>
 					</p>
@@ -107,7 +107,7 @@ export function App() {
 		<div class="app">
 			<aside class="sidebar">
 				<Link to="/" class="brand">
-					Logs Parser
+					Blocklogs
 				</Link>
 				<nav aria-label="Main">
 					{NAV.map((n) => (
@@ -121,11 +121,11 @@ export function App() {
 					))}
 				</nav>
 				<ServerFilter />
-				<ConnectionBadge />
+				<ConnectionBadge status={connection.value} />
 			</aside>
-			<main class="page-root">
+			<div class="content">
 				<Routes />
-			</main>
+			</div>
 			<Toasts />
 		</div>
 	);

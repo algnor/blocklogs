@@ -1,11 +1,17 @@
+import { Async, Page, Toggle } from "@aomc-server/block-ui";
+import {
+	formatHours,
+	formatInt,
+	formatPercent,
+	secsToHours,
+} from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type { GeoBucket, GeoReport } from "../../../shared/api";
 import { geoCsv } from "../csv";
-import { hours, int, percent, secsToHours } from "../format";
 import { useFetch } from "../hooks";
 import { statsQuery } from "../state";
-import { Async, Check, Page, PlayerLink } from "../ui/common";
-import { RangePicker } from "../ui/RangePicker";
+import { PlayerLink } from "../ui/common";
+import { DateRange } from "../ui/DateRange";
 
 function download(name: string, text: string) {
 	const url = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
@@ -21,16 +27,19 @@ function Cells(props: { b: GeoBucket; total: number }) {
 	const share = props.total > 0 ? b.secs / props.total : 0;
 	return (
 		<>
-			<td class="num">{hours(secsToHours(b.secs))}</td>
+			<td class="num">{formatHours(secsToHours(b.secs))}</td>
 			<td class="share">
-				<span class="bar">
-					<span style={{ width: `${Math.min(100, share * 100)}%` }} />
+				<span class="share-bar">
+					<span
+						class="share-fill"
+						style={{ width: `${Math.min(100, share * 100)}%` }}
+					/>
 				</span>
-				<span class="num">{percent(share)}</span>
+				<span class="num">{formatPercent(share)}</span>
 			</td>
-			<td class="num">{int(b.players)}</td>
-			<td class="num">{int(b.sessions)}</td>
-			<td class="num">{hours(secsToHours(b.avgSecsPerPlayer))}</td>
+			<td class="num">{formatInt(b.players)}</td>
+			<td class="num">{formatInt(b.sessions)}</td>
+			<td class="num">{formatHours(secsToHours(b.avgSecsPerPlayer))}</td>
 		</>
 	);
 }
@@ -44,7 +53,7 @@ function TopPlayers(props: { b: GeoBucket }) {
 				{props.b.topPlayers.map((p) => (
 					<span key={p.player} class="top-player">
 						<PlayerLink name={p.player} />{" "}
-						<span class="muted">{hours(secsToHours(p.secs))}</span>
+						<span class="muted">{formatHours(secsToHours(p.secs))}</span>
 					</span>
 				))}
 			</td>
@@ -64,10 +73,12 @@ export function GeoPage() {
 
 	return (
 		<Page
+			embedded
+			stack
 			title="Geo"
 			actions={
 				<>
-					<RangePicker />
+					<DateRange />
 					<button
 						type="button"
 						class="btn small"
@@ -82,24 +93,28 @@ export function GeoPage() {
 			}
 		>
 			<div class="toolbar">
-				<Check checked={perPlayer} onChange={setPerPlayer}>
-					Attribute each player to their main country
-				</Check>
+				<Toggle
+					inline
+					checked={perPlayer}
+					onChange={setPerPlayer}
+					label="Attribute each player to their main country"
+				/>
 			</div>
 			<Async state={state}>
 				{(r) => (
 					<>
 						<p class="summary">
-							total {hours(secsToHours(r.totalSecs))} |{" "}
-							{int(r.totals.continents)} continents, {int(r.totals.countries)}{" "}
-							countries, {int(r.totals.players)} players,{" "}
-							{int(r.totals.sessions)} sessions
+							total {formatHours(secsToHours(r.totalSecs))} |{" "}
+							{formatInt(r.totals.continents)} continents,{" "}
+							{formatInt(r.totals.countries)} countries,{" "}
+							{formatInt(r.totals.players)} players,{" "}
+							{formatInt(r.totals.sessions)} sessions
 						</p>
 						{r.continents.length === 0 ? (
 							<p class="muted state">No data in this range.</p>
 						) : (
 							<div class="table-wrap">
-								<table class="stats-table geo">
+								<table class="table geo">
 									<thead>
 										<tr>
 											<th class="num">#</th>

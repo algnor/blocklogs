@@ -1,14 +1,14 @@
 services:
-  logs-parser:
+  blocklogs:
     build: .
-    image: logs-parser
+    image: blocklogs
     restart: unless-stopped
     env_file: .env
     ports:
       # No built-in auth: only expose it to your reverse proxy / localhost.
       - "127.0.0.1:3000:3000"
     volumes:
-      - logs-parser-data:/data
+      - blocklogs-data:/data
 
 volumes:
-  logs-parser-data:
+  blocklogs-data:

@@ -1,3 +1,24 @@
+import {
+	Async,
+	Card,
+	Chart,
+	Empty,
+	Loading,
+	Page,
+	Progress,
+	Tile,
+} from "@aomc-server/block-ui";
+import {
+	formatBytes,
+	formatElapsed,
+	formatHours,
+	formatInt,
+	formatPercent,
+	formatRelative,
+	formatShortDate,
+	formatShortTs,
+	secsToHours,
+} from "@aomc-server/block-ui/format";
 import type {
 	Activity,
 	CrashList,
@@ -8,34 +29,12 @@ import type {
 	SessionList,
 } from "../../../shared/api";
 import { startReparse, startSync } from "../actions";
-import {
-	bytes,
-	duration,
-	hours,
-	int,
-	percent,
-	relative,
-	secsToHours,
-	shortDate,
-	shortTs,
-} from "../format";
 import { useFetch } from "../hooks";
 import { servers } from "../live";
 import { serverColor, serverQuery, setSelectedServers } from "../state";
 import { ActivityLog } from "../ui/ActivityLog";
-import { Chart } from "../ui/Chart";
-import {
-	Async,
-	Card,
-	Empty,
-	Link,
-	Loading,
-	Page,
-	PlayerLink,
-	Tile,
-} from "../ui/common";
-import { RangePicker } from "../ui/RangePicker";
-import { SyncProgress } from "../ui/SyncProgress";
+import { Link, PlayerLink, syncLabel } from "../ui/common";
+import { DateRange } from "../ui/DateRange";
 
 const BACKENDS = { sftp: "SFTP", ptero: "Panel API", local: "Local directory" };
 
@@ -80,13 +79,20 @@ function StatusCard(props: { s: ServerSummary }) {
 				</>
 			}
 		>
-			{s.progress && <SyncProgress p={s.progress} />}
-			{s.lastSyncStatus === "error" && s.lastSyncError && (
-				<p class="err">{s.lastSyncError}</p>
+			{s.progress && (
+				<Progress
+					value={
+						s.progress.total ? s.progress.done / s.progress.total : undefined
+					}
+					label={syncLabel(s.progress)}
+				/>
 			)}
-			<div class="kv wide-kv">
+			{s.lastSyncStatus === "error" && s.lastSyncError && (
+				<p class="error-text">{s.lastSyncError}</p>
+			)}
+			<div class="kv left">
 				<span>Last sync</span>
-				<b>{relative(s.lastSyncAt)}</b>
+				<b>{formatRelative(s.lastSyncAt)}</b>
 				<span>Next sync</span>
 				<b>
 					{nextSync(s)}{" "}
@@ -116,20 +122,22 @@ function Tiles(props: { s: ServerSummary; info: ServerInfo | null }) {
 	const { s, info } = props;
 	return (
 		<div class="tiles">
-			<Tile label="Online now" value={int(s.online.length)} />
-			<Tile label="Players" value={int(s.players)} />
-			<Tile label="Sessions" value={int(s.sessions)} />
-			<Tile label="Total hours" value={hours(s.hoursTotal)} />
-			<Tile label="Hours (7d)" value={hours(s.hours7d)} />
-			<Tile label="Hours (30d)" value={hours(s.hours30d)} />
-			<Tile label="Crashes" value={int(s.crashes)} />
+			<Tile label="Online now" value={formatInt(s.online.length)} />
+			<Tile label="Players" value={formatInt(s.players)} />
+			<Tile label="Sessions" value={formatInt(s.sessions)} />
+			<Tile label="Total hours" value={formatHours(s.hoursTotal)} />
+			<Tile label="Hours (7d)" value={formatHours(s.hours7d)} />
+			<Tile label="Hours (30d)" value={formatHours(s.hours30d)} />
+			<Tile label="Crashes" value={formatInt(s.crashes)} />
 			<Tile
 				label="Peak players"
-				value={info?.peak ? int(info.peak.players) : "-"}
+				value={info?.peak ? formatInt(info.peak.players) : "-"}
 			/>
 			<Tile
 				label="Average session"
-				value={info?.sessions.total ? duration(info.sessions.avgSecs) : "-"}
+				value={
+					info?.sessions.total ? formatElapsed(info.sessions.avgSecs) : "-"
+				}
 			/>
 		</div>
 	);
@@ -175,11 +183,11 @@ function ChartsCard(props: { id: number }) {
 									values: a.daily.map((d) => d.hours),
 								},
 							]}
-							formatY={(v) => hours(v)}
+							formatY={(v) => formatHours(v)}
 							formatX={(i) => a.daily[i]?.date.slice(5) ?? ""}
 							formatTip={(i) => a.daily[i]?.date ?? ""}
 							note={(i) =>
-								`${int(a.daily[i]?.players ?? 0)} players · ${int(a.daily[i]?.sessions ?? 0)} sessions`
+								`${formatInt(a.daily[i]?.players ?? 0)} players · ${formatInt(a.daily[i]?.sessions ?? 0)} sessions`
 							}
 						/>
 					)}
@@ -202,7 +210,7 @@ function ChartsCard(props: { id: number }) {
 							formatY={(v) => v.toFixed(1)}
 							formatX={(h) => `${String(h).padStart(2, "0")}:00`}
 							note={(i) =>
-								`${int(a.hourOfDay[i]?.sessions ?? 0)} sessions started`
+								`${formatInt(a.hourOfDay[i]?.sessions ?? 0)} sessions started`
 							}
 						/>
 					)}
@@ -234,7 +242,7 @@ function TopPlayers(props: { id: number }) {
 						<Empty>No players in this range.</Empty>
 					) : (
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Player</th>
@@ -249,9 +257,9 @@ function TopPlayers(props: { id: number }) {
 											<td>
 												<PlayerLink name={p.player} />
 											</td>
-											<td class="num">{hours(p.hours)}</td>
-											<td class="num">{int(p.sessions)}</td>
-											<td>{shortDate(p.lastSeen)}</td>
+											<td class="num">{formatHours(p.hours)}</td>
+											<td class="num">{formatInt(p.sessions)}</td>
+											<td>{formatShortDate(p.lastSeen)}</td>
 										</tr>
 									))}
 								</tbody>
@@ -284,7 +292,7 @@ function RecentSessions(props: { id: number }) {
 						<Empty>No sessions in this range.</Empty>
 					) : (
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Start (UTC)</th>
@@ -296,14 +304,14 @@ function RecentSessions(props: { id: number }) {
 								<tbody>
 									{d.rows.map((r) => (
 										<tr key={`${r.player}-${r.start}`}>
-											<td class="nowrap">{shortTs(r.start)}</td>
+											<td class="nowrap">{formatShortTs(r.start)}</td>
 											<td>
 												<PlayerLink name={r.player} />
 											</td>
-											<td class="num">{duration(r.secs)}</td>
+											<td class="num">{formatElapsed(r.secs)}</td>
 											<td>
 												<span
-													class={r.closedBy === "crash" ? "err" : ""}
+													class={r.closedBy === "crash" ? "error-text" : ""}
 													title={
 														r.closedBy === "crash"
 															? "The server restarted without stopping"
@@ -345,7 +353,7 @@ function RecentCrashes(props: { id: number }) {
 						<Empty>No crash reports.</Empty>
 					) : (
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Time (UTC)</th>
@@ -356,7 +364,7 @@ function RecentCrashes(props: { id: number }) {
 								<tbody>
 									{d.rows.map((c) => (
 										<tr key={c.fileId}>
-											<td class="nowrap">{shortTs(c.ts)}</td>
+											<td class="nowrap">{formatShortTs(c.ts)}</td>
 											<td class="wrap">
 												{c.description ?? c.exception ?? c.name}
 											</td>
@@ -394,7 +402,7 @@ function Countries(props: { id: number }) {
 						<Empty>No location data in this range.</Empty>
 					) : (
 						<div class="table-wrap">
-							<table class="stats-table">
+							<table class="table">
 								<thead>
 									<tr>
 										<th>Country</th>
@@ -407,9 +415,9 @@ function Countries(props: { id: number }) {
 									{top.map((c) => (
 										<tr key={c.code}>
 											<td>{c.name}</td>
-											<td class="num">{hours(secsToHours(c.secs))}</td>
-											<td class="num">{percent(c.share / 100)}</td>
-											<td class="num">{int(c.players)}</td>
+											<td class="num">{formatHours(secsToHours(c.secs))}</td>
+											<td class="num">{formatPercent(c.share / 100)}</td>
+											<td class="num">{formatInt(c.players)}</td>
 										</tr>
 									))}
 								</tbody>
@@ -429,50 +437,52 @@ function StoredData(props: { info: ServerInfo }) {
 	);
 	return (
 		<Card title="Stored data (all time)">
-			<div class="kv wide-kv">
+			<div class="kv left">
 				<span>Data covers</span>
 				<b>
 					{info.range.first
-						? `${shortDate(info.range.first)} to ${shortDate(info.range.last)}`
+						? `${formatShortDate(info.range.first)} to ${formatShortDate(info.range.last)}`
 						: "nothing yet"}
 				</b>
 				<span>Log files</span>
-				<b>{int(info.files.logs)}</b>
+				<b>{formatInt(info.files.logs)}</b>
 				<span>Crash reports</span>
-				<b>{int(info.files.crashes)}</b>
+				<b>{formatInt(info.files.crashes)}</b>
 				<span>Size on the server</span>
-				<b>{bytes(info.files.bytes)}</b>
+				<b>{formatBytes(info.files.bytes)}</b>
 				<span>Files with problems</span>
-				<b class={info.files.withErrors ? "err" : ""}>
-					{int(info.files.withErrors)}
+				<b class={info.files.withErrors ? "error-text" : ""}>
+					{formatInt(info.files.withErrors)}
 				</b>
 				<span>Last file stored</span>
-				<b>{relative(info.files.lastIngestedAt)}</b>
+				<b>{formatRelative(info.files.lastIngestedAt)}</b>
 				<span>Chat / commands / logins</span>
 				<b>
-					{int(info.events.chat)} / {int(info.events.commands)} /{" "}
-					{int(info.events.joins)}
+					{formatInt(info.events.chat)} / {formatInt(info.events.commands)} /{" "}
+					{formatInt(info.events.joins)}
 				</b>
 				<span>Names in usercache</span>
-				<b>{int(info.usercache)}</b>
+				<b>{formatInt(info.usercache)}</b>
 				<span>Longest session</span>
 				<b>
 					{info.sessions.longest
-						? `${duration(info.sessions.longest.secs)} (${info.sessions.longest.player}, ${shortDate(info.sessions.longest.start)})`
+						? `${formatElapsed(info.sessions.longest.secs)} (${info.sessions.longest.player}, ${formatShortDate(info.sessions.longest.start)})`
 						: "-"}
 				</b>
 				<span>Peak players</span>
 				<b>
-					{info.peak ? `${info.peak.players} on ${shortTs(info.peak.at)}` : "-"}
+					{info.peak
+						? `${info.peak.players} on ${formatShortTs(info.peak.at)}`
+						: "-"}
 				</b>
 				<span>Sessions ended by</span>
 				<b>
 					{ended.length === 0
 						? "-"
 						: ended.map(([k, n], i) => (
-								<span key={k} class={k === "crash" ? "err" : ""}>
+								<span key={k} class={k === "crash" ? "error-text" : ""}>
 									{i > 0 && " · "}
-									{k} {int(n)}
+									{k} {formatInt(n)}
 								</span>
 							))}
 				</b>
@@ -489,13 +499,13 @@ export function ServerPage(props: { id: number }) {
 
 	if (!list)
 		return (
-			<Page title="Server">
+			<Page embedded title="Server">
 				<Loading />
 			</Page>
 		);
 	if (!s)
 		return (
-			<Page title="Server">
+			<Page embedded title="Server">
 				<Card>
 					<Empty>
 						No such server. <Link to="/">Back to the overview</Link>
@@ -506,10 +516,12 @@ export function ServerPage(props: { id: number }) {
 
 	return (
 		<Page
+			embedded
+			stack
 			title={s.name}
 			actions={
 				<>
-					<RangePicker />
+					<DateRange />
 					<Link to="/" class="btn small">
 						Overview
 					</Link>

@@ -1,10 +1,25 @@
+import {
+	Async,
+	Card,
+	Dot,
+	Empty,
+	ErrorBox,
+	Loading,
+	Page,
+	Progress,
+	Tile,
+} from "@aomc-server/block-ui";
+import {
+	formatHours,
+	formatInt,
+	formatRelative,
+} from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type {
 	Overview as OverviewData,
 	ServerSummary,
 } from "../../../shared/api";
 import { startSync } from "../actions";
-import { hours, int, relative } from "../format";
 import { useFetch } from "../hooks";
 import { navigate } from "../router";
 import {
@@ -16,17 +31,7 @@ import {
 	setSelectedServers,
 } from "../state";
 import { ActivityLog } from "../ui/ActivityLog";
-import {
-	Async,
-	Card,
-	Empty,
-	ErrorBox,
-	Link,
-	Loading,
-	Page,
-	Tile,
-} from "../ui/common";
-import { SyncProgress } from "../ui/SyncProgress";
+import { Link, syncLabel } from "../ui/common";
 
 function ServerCard(props: { s: ServerSummary }) {
 	const { s } = props;
@@ -50,7 +55,7 @@ function ServerCard(props: { s: ServerSummary }) {
 		>
 			<div class="card-head">
 				<h2>
-					<span class="dot" style={{ background: serverColor(s.id) }} />{" "}
+					<Dot color={serverColor(s.id)} />{" "}
 					<Link to={`/servers/${s.id}`} class="plain-link">
 						{s.name}
 					</Link>
@@ -61,23 +66,28 @@ function ServerCard(props: { s: ServerSummary }) {
 				{s.game} · {s.backend}
 				{!s.enabled && " · disabled"}
 			</div>
-			{p && <SyncProgress p={p} />}
+			{p && (
+				<Progress
+					value={p.total ? p.done / p.total : undefined}
+					label={syncLabel(p)}
+				/>
+			)}
 			{s.lastSyncStatus === "error" && s.lastSyncError && (
-				<div class="err small-text">{s.lastSyncError}</div>
+				<div class="error-text small-text">{s.lastSyncError}</div>
 			)}
 			<div class="kv">
 				<span>Last sync</span>
-				<b>{relative(s.lastSyncAt)}</b>
+				<b>{formatRelative(s.lastSyncAt)}</b>
 				<span>Hours 7d / 30d</span>
 				<b>
-					{hours(s.hours7d)} / {hours(s.hours30d)}
+					{formatHours(s.hours7d)} / {formatHours(s.hours30d)}
 				</b>
 				<span>Players</span>
-				<b>{int(s.players)}</b>
+				<b>{formatInt(s.players)}</b>
 				<span>Sessions</span>
-				<b>{int(s.sessions)}</b>
+				<b>{formatInt(s.sessions)}</b>
 				<span>Crashes</span>
-				<b>{int(s.crashes)}</b>
+				<b>{formatInt(s.crashes)}</b>
 			</div>
 			<div class="online">
 				<span class="muted">Online ({s.online.length}):</span>{" "}
@@ -123,6 +133,8 @@ export function OverviewPage() {
 
 	return (
 		<Page
+			embedded
+			stack
 			title="Overview"
 			actions={
 				<button
@@ -142,13 +154,13 @@ export function OverviewPage() {
 			<Async state={ov}>
 				{(o) => (
 					<div class="tiles">
-						<Tile label="Servers" value={int(o.servers)} />
-						<Tile label="Players" value={int(o.players)} />
-						<Tile label="Sessions" value={int(o.sessions)} />
-						<Tile label="Total hours" value={hours(o.hoursTotal)} />
-						<Tile label="Hours (7d)" value={hours(o.hours7d)} />
-						<Tile label="Crashes (7d)" value={int(o.crashes7d)} />
-						<Tile label="Online now" value={int(o.online.length)} />
+						<Tile label="Servers" value={formatInt(o.servers)} />
+						<Tile label="Players" value={formatInt(o.players)} />
+						<Tile label="Sessions" value={formatInt(o.sessions)} />
+						<Tile label="Total hours" value={formatHours(o.hoursTotal)} />
+						<Tile label="Hours (7d)" value={formatHours(o.hours7d)} />
+						<Tile label="Crashes (7d)" value={formatInt(o.crashes7d)} />
+						<Tile label="Online now" value={formatInt(o.online.length)} />
 					</div>
 				)}
 			</Async>

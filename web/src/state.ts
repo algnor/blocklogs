@@ -1,5 +1,5 @@
+import { toYmd } from "@aomc-server/block-ui/format";
 import { effect, signal } from "@preact/signals";
-import { ymd } from "./format";
 import { servers } from "./live";
 import { loc, setQuery } from "./router";
 
@@ -43,7 +43,7 @@ export function parseIds(s: string | null | undefined): number[] {
 	].sort((a, b) => a - b);
 }
 
-const SERVERS_KEY = "logs.servers";
+const SERVERS_KEY = "blocklogs.servers";
 
 function initialServers(): number[] {
 	const fromUrl = loc.value.query.servers;
@@ -80,7 +80,7 @@ effect(() => {
 export type Preset = "7d" | "30d" | "90d" | "1y" | "all" | "custom";
 export type RangeState = { preset: Preset; since: string; until: string };
 
-const RANGE_KEY = "logs.range";
+const RANGE_KEY = "blocklogs.range";
 const PRESET_DAYS: Record<string, number> = {
 	"7d": 7,
 	"30d": 30,
@@ -96,7 +96,7 @@ export function rangeDates(
 	if (r.preset === "custom")
 		return { since: r.since || undefined, until: r.until || undefined };
 	const days = PRESET_DAYS[r.preset] ?? 30;
-	return { since: ymd(new Date(now.getTime() - days * 86400000)) };
+	return { since: toYmd(new Date(now.getTime() - days * 86400000)) };
 }
 
 function initialRange(): RangeState {

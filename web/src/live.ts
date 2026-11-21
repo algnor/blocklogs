@@ -1,8 +1,11 @@
+import { createEventStream } from "@aomc-server/block-ui/events";
 import { signal } from "@preact/signals";
 import type { ServerSummary, SyncProgress } from "../../shared/api";
-import type { LogEntry } from "../../shared/events";
+import type { Events, LogEntry } from "../../shared/events";
 import { getJson } from "./api";
-import { onConnection, subscribe } from "./events";
+
+const stream = createEventStream<Events>();
+const { subscribe } = stream;
 
 /*
  * Everything that arrives live lives here, as signals the pages read:
@@ -56,7 +59,7 @@ export function startLive() {
 	if (started) return;
 	started = true;
 
-	onConnection((status) => {
+	stream.onStatus((status) => {
 		connection.value = status;
 		publish();
 	});

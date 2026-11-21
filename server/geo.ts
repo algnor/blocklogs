@@ -51,7 +51,7 @@ async function download(): Promise<boolean> {
 	]) {
 		try {
 			const res = await fetch(DBIP(d), {
-				headers: { "User-Agent": "logs-parser" },
+				headers: { "User-Agent": "blocklogs" },
 			});
 			if (!res.ok) continue;
 			const tmp = `${mmdbPath}.tmp`;

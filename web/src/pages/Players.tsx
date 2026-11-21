@@ -1,9 +1,3 @@
-import { useState } from "preact/hooks";
-import type { PlayerList } from "../../../shared/api";
-import { hours, int, shortDate } from "../format";
-import { useDebounced, useFetch, usePageOffset } from "../hooks";
-import { navigate } from "../router";
-import { statsQuery } from "../state";
 import {
 	Async,
 	Avatar,
@@ -11,10 +5,21 @@ import {
 	Page,
 	Pager,
 	rowKey,
-	ServerDots,
 	SortTh,
-} from "../ui/common";
-import { RangePicker } from "../ui/RangePicker";
+} from "@aomc-server/block-ui";
+import {
+	formatHours,
+	formatInt,
+	formatShortDate,
+} from "@aomc-server/block-ui/format";
+import { useDebounced, usePageOffset } from "@aomc-server/block-ui/hooks";
+import { useState } from "preact/hooks";
+import type { PlayerList } from "../../../shared/api";
+import { useFetch } from "../hooks";
+import { navigate } from "../router";
+import { statsQuery } from "../state";
+import { ServerDots } from "../ui/common";
+import { DateRange } from "../ui/DateRange";
 
 const LIMIT = 50;
 
@@ -50,7 +55,7 @@ export function PlayersPage() {
 	);
 
 	return (
-		<Page title="Players" actions={<RangePicker />}>
+		<Page embedded stack title="Players" actions={<DateRange />}>
 			<div class="toolbar">
 				<input
 					type="search"
@@ -70,7 +75,7 @@ export function PlayersPage() {
 					) : (
 						<>
 							<div class="table-wrap">
-								<table class="stats-table">
+								<table class="table">
 									<thead>
 										<tr>
 											{th("Player", "player", false)}
@@ -105,13 +110,13 @@ export function PlayersPage() {
 													<td>
 														<ServerDots ids={p.serverIds} />
 													</td>
-													<td class="num">{hours(p.hours)}</td>
-													<td class="num">{int(p.sessions)}</td>
-													<td>{shortDate(p.firstSeen)}</td>
-													<td>{shortDate(p.lastSeen)}</td>
-													<td class="num">{int(p.messages)}</td>
-													<td class="num">{int(p.commands)}</td>
-													<td class="num">{int(p.distinctIps)}</td>
+													<td class="num">{formatHours(p.hours)}</td>
+													<td class="num">{formatInt(p.sessions)}</td>
+													<td>{formatShortDate(p.firstSeen)}</td>
+													<td>{formatShortDate(p.lastSeen)}</td>
+													<td class="num">{formatInt(p.messages)}</td>
+													<td class="num">{formatInt(p.commands)}</td>
+													<td class="num">{formatInt(p.distinctIps)}</td>
 												</tr>
 											);
 										})}
