@@ -5,7 +5,6 @@
 		"includes": [
 			"**",
 			"!web/public/static",
-			"!old-logs-parser",
 			"!data",
 			"!dist",
 			"!bun.lock"

@@ -95,5 +95,3 @@ bun run lint
 bun run typecheck
 bun scripts/import-local.ts <name> <dir>   # import a local directory laid out like a server (logs/, crash-reports/)
 ```
-
-`old-logs-parser/` is the original script this was ported from; the parser output is identical to it on the sample logs (events, sessions and geo report).
