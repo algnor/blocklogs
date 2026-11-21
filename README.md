@@ -9,6 +9,7 @@ There is no built-in auth. Put it behind your reverse proxy / SSO. It binds to `
 ## Run
 
 ```sh
+git clone --recursive git@github.com:algnor/blocklogs.git   # or: git submodule update --init
 bun install
 cp .env.example .env      # PTERO_URL, PTERO_API_KEY
 bun run build             # builds the web app into dist/
@@ -22,7 +23,7 @@ cp .env.example .env      # set PTERO_URL and PTERO_API_KEY
 docker compose up -d --build
 ```
 
-The UI is on `http://127.0.0.1:3000`. The compose file only publishes it on localhost, so point your reverse proxy at it (there is no built-in auth). Everything it stores (database, downloaded logs, GeoIP database) is in the `blocklogs-data` volume, mounted at `/data`. The container runs as an unprivileged user and has a healthcheck. To build without compose, give the build the library checkout as a named context: `docker build --build-context block-ui=../block-ui -t blocklogs .`. Update with `git pull && docker compose up -d --build`; back up with `docker run --rm -v blocklogs-data:/data -v "$PWD":/out busybox tar czf /out/blocklogs-data.tgz -C /data .`.
+The UI is on `http://127.0.0.1:3000`. The compose file only publishes it on localhost, so point your reverse proxy at it (there is no built-in auth). Everything it stores (database, downloaded logs, GeoIP database) is in the `blocklogs-data` volume, mounted at `/data`. The container runs as an unprivileged user and has a healthcheck. Update with `git pull && docker compose up -d --build`; back up with `docker run --rm -v blocklogs-data:/data -v "$PWD":/out busybox tar czf /out/blocklogs-data.tgz -C /data .`.
 
 ### Development
 
@@ -30,7 +31,7 @@ The UI is on `http://127.0.0.1:3000`. The compose file only publishes it on loca
 
 ### UI
 
-The interface is built on [`@aomc-server/block-ui`](../block-ui) (components, hooks, helpers and the stylesheet shared with blockmap); `web/src/styles.css` only has what is specific to this app. It is installed from `../block-ui` for now (`file:../block-ui` in `package.json`, copied into `node_modules` by `bun install`, so run it again after changing the library). The library ships TypeScript source, which is why Vite is run with `--configLoader runner` (`build` and `dev:web`): Vite's default config loader bundles the config with the library left external, and Node can't import TypeScript from `node_modules`, while the runner loads it through Vite itself (the config uses the library's prepaint script). Pick the colours (system / dark / light) and the style (Bedrock, Windows 98, Windows XP, Modern) under **Settings → Appearance**; it is kept in this browser (`blocklogs.settings`).
+The interface is built on [`@aomc-server/block-ui`](https://github.com/AOMC-Server/block-ui) (components, hooks, helpers and the stylesheet shared with blockmap); `web/src/styles.css` only has what is specific to this app. The library is a git submodule in `block-ui/` and a workspace package, so edits there show up right away. To change it, `git switch main` inside `block-ui/`, commit and push there, then commit the new submodule commit here; `git submodule update --remote block-ui` pulls in library changes made elsewhere. `bun run test` only runs this app's tests (the library has its own: `cd block-ui && bun test`). The library ships TypeScript source, which is why Vite is run with `--configLoader runner` (`build` and `dev:web`): the config imports the library's prepaint script, and Vite's default config loader can't load TypeScript from a dependency. Pick the colours (system / dark / light) and the style (Bedrock, Windows 98, Windows XP, Modern) under **Settings → Appearance**; it is kept in this browser (`blocklogs.settings`).
 
 Then open **Settings → Import from panel** to add servers. They sync every 15 minutes (per-server setting), or press _Sync now_.
 

@@ -22,10 +22,6 @@ export default defineConfig({
 			],
 		},
 	],
-	resolve: {
-		// The library has its own copy of its peers in node_modules; the app must have only one.
-		dedupe: ["preact", "@preact/signals"],
-	},
 	server: {
 		proxy: { "/api": "http://localhost:3000" },
 	},

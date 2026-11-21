@@ -1,4 +1,6 @@
-node_modules
+**/node_modules
+block-ui/demo/dist
+.git
 data
 dist
 .env

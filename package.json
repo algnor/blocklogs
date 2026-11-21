@@ -2,12 +2,15 @@
 	"name": "blocklogs",
 	"private": true,
 	"type": "module",
+	"workspaces": [
+		"block-ui"
+	],
 	"scripts": {
 		"dev": "bun --watch server/index.ts",
 		"dev:web": "vite --config web/vite.config.ts --configLoader runner",
 		"build": "vite build --config web/vite.config.ts --configLoader runner",
 		"start": "bun server/index.ts",
-		"test": "bun test",
+		"test": "bun test server shared web scripts",
 		"lint": "biome check .",
 		"typecheck": "tsc --noEmit"
 	},
@@ -19,7 +22,7 @@
 		"ssh2": "^1.17.0"
 	},
 	"devDependencies": {
-		"@aomc-server/block-ui": "file:../block-ui",
+		"@aomc-server/block-ui": "workspace:*",
 		"@biomejs/biome": "^2.6.8",
 		"@preact/preset-vite": "^2.10.6",
 		"@types/bun": "^1.4.5",

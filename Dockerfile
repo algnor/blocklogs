@@ -1,8 +1,8 @@
 FROM oven/bun:1 AS build
 WORKDIR /app
-# package.json refers to the UI library as file:../block-ui.
-COPY --from=block-ui . /block-ui
 COPY package.json bun.lock ./
+# The UI library is a git submodule and a workspace package.
+COPY block-ui ./block-ui
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
@@ -10,6 +10,7 @@ RUN bun run build
 FROM oven/bun:1
 WORKDIR /app
 COPY package.json bun.lock ./
+COPY block-ui/package.json ./block-ui/
 RUN bun install --frozen-lockfile --production
 COPY server ./server
 COPY shared ./shared
