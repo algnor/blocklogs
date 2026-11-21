@@ -2,13 +2,7 @@
 	"$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
 	"files": {
 		"ignoreUnknown": true,
-		"includes": [
-			"**",
-			"!web/public/static",
-			"!data",
-			"!dist",
-			"!bun.lock"
-		]
+		"includes": ["**", "!web/public/static", "!data", "!dist", "!bun.lock"]
 	},
 	"formatter": {
 		"enabled": true,
