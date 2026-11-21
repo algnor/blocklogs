@@ -124,6 +124,7 @@ export function PlayerPage(props: { name: string }) {
 								actions={
 									<Toggle
 										inline
+										bold
 										checked={showIps}
 										onChange={setShowIps}
 										label="Show IPs"

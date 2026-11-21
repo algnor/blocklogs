@@ -35,6 +35,7 @@ export function ActivityLog(props: { serverIds: number[] }) {
 					<ConnectionBadge status={connection.value} />
 					<Toggle
 						inline
+						bold
 						checked={problemsOnly}
 						onChange={setProblemsOnly}
 						label="Problems only"

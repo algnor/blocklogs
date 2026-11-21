@@ -95,6 +95,7 @@ export function GeoPage() {
 			<div class="toolbar">
 				<Toggle
 					inline
+					bold
 					checked={perPlayer}
 					onChange={setPerPlayer}
 					label="Attribute each player to their main country"

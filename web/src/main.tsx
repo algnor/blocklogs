@@ -1,4 +1,4 @@
-import "@aomc-server/block-ui/css/index.css";
+import "@aomc-server/block-ui/css";
 import { initToggleDrag, installFontScale } from "@aomc-server/block-ui";
 import { render } from "preact";
 import { App } from "./App";

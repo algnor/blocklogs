@@ -7,8 +7,10 @@ import {
 	Field,
 	Loading,
 	Modal,
+	ModePicker,
 	Page,
 	Pager,
+	StylePicker,
 	Toggle,
 	toast,
 } from "@aomc-server/block-ui";
@@ -18,7 +20,6 @@ import {
 	formatRelative,
 	formatShortTs,
 } from "@aomc-server/block-ui/format";
-import { MODES, STYLES } from "@aomc-server/block-ui/theme";
 import { useState } from "preact/hooks";
 import type {
 	AppStatus,
@@ -247,6 +248,7 @@ function EditModal(props: {
 				</Field>
 				<Toggle
 					inline
+					bold
 					checked={f.enabled}
 					onChange={(v) => set("enabled", v)}
 					label="Enabled"
@@ -399,6 +401,7 @@ function ImportModal(props: { onClose: () => void }) {
 								<li key={r.identifier}>
 									<Toggle
 										inline
+										bold
 										checked={r.imported || picked.has(r.identifier)}
 										disabled={r.imported || r.suspended}
 										onChange={(v) => toggle(r.identifier, v)}
@@ -452,51 +455,17 @@ function AppearanceCard() {
 	return (
 		<Card title="Appearance">
 			<p class="muted small-text">Saved in this browser only.</p>
-			<fieldset class="mode-picker">
-				<legend class="label">Colours</legend>
-				<div class="segmented">
-					{MODES.map((m) => (
-						<button
-							key={m.id}
-							type="button"
-							class={`btn ${m.id === mode ? "active" : ""}`}
-							aria-pressed={m.id === mode}
-							onClick={() => updateSettings({ mode: m.id })}
-						>
-							{m.name}
-						</button>
-					))}
-				</div>
-			</fieldset>
-			<fieldset class="style-picker">
-				<legend class="label">Style</legend>
-				{STYLES.map((st) => (
-					<label
-						key={st.id}
-						class={`style-option ${st.id === style ? "selected" : ""}`}
-					>
-						<input
-							class="visually-hidden"
-							type="radio"
-							name="style"
-							value={st.id}
-							checked={st.id === style}
-							onChange={() => updateSettings({ style: st.id })}
-						/>
-						<span class="style-preview" data-style={st.id} aria-hidden="true">
-							<span class="preview-window">
-								<span class="preview-head">Players</span>
-								<span class="preview-body">
-									<span class="btn small">Sync</span>
-									<span class="btn small primary">Save</span>
-								</span>
-							</span>
-						</span>
-						<span class="style-name">{st.name}</span>
-						<span class="muted hint">{st.hint}</span>
-					</label>
-				))}
-			</fieldset>
+			<ModePicker
+				narrow
+				value={mode}
+				onChange={(m) => updateSettings({ mode: m })}
+			/>
+			<StylePicker
+				value={style}
+				onChange={(st) => updateSettings({ style: st })}
+				previewTitle="Players"
+				previewButtons={["Sync", "Save"]}
+			/>
 		</Card>
 	);
 }
@@ -654,6 +623,7 @@ export function SettingsPage() {
 					title="Delete server"
 					confirmLabel="Delete"
 					danger
+					closeOnBackdrop
 					onClose={close}
 					onConfirm={() => remove(dialog.server)}
 				>

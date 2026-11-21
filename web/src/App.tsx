@@ -36,6 +36,7 @@ function ServerFilter() {
 				<>
 					<Toggle
 						inline
+						bold
 						checked={all}
 						onChange={() => setSelectedServers([])}
 						label="All"
@@ -44,6 +45,7 @@ function ServerFilter() {
 						<Toggle
 							key={s.id}
 							inline
+							bold
 							checked={all || sel.includes(s.id)}
 							onChange={(on) => {
 								const cur = all ? list.map((x) => x.id) : sel;
