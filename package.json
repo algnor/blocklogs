@@ -1,0 +1,29 @@
+{
+	"name": "logs-parser",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch server/index.ts",
+		"dev:web": "vite --config web/vite.config.ts",
+		"build": "vite build --config web/vite.config.ts",
+		"start": "bun server/index.ts",
+		"test": "bun test",
+		"lint": "biome check .",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@preact/signals": "^2.11.4",
+		"hono": "^4.13.19",
+		"maxmind": "^5.1.0",
+		"preact": "^11.2.0",
+		"ssh2": "^1.17.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.6.8",
+		"@preact/preset-vite": "^2.10.6",
+		"@types/bun": "^1.4.5",
+		"@types/ssh2": "^1.15.6",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.8"
+	}
+}

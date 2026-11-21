@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"types": ["bun"],
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"jsx": "react-jsx",
+		"jsxImportSource": "preact",
+		"verbatimModuleSyntax": true
+	},
+	"include": ["server", "shared", "web/src", "web/vite.config.ts", "scripts"]
+}
