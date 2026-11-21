@@ -11,10 +11,10 @@ import {
 	formatElapsed,
 	formatHours,
 	formatInt,
-	formatShortTs,
 } from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type { PlayerProfile } from "../../../shared/api";
+import { formatShortTs } from "../format";
 import { useFetch } from "../hooks";
 import { buildSearch } from "../router";
 import { Link, ServerDot, ServerDots } from "../ui/common";

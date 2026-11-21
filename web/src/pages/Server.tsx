@@ -14,10 +14,6 @@ import {
 	formatHours,
 	formatInt,
 	formatPercent,
-	formatRelative,
-	formatShortDate,
-	formatShortTs,
-	secsToHours,
 } from "@aomc-server/block-ui/format";
 import type {
 	Activity,
@@ -29,6 +25,12 @@ import type {
 	SessionList,
 } from "../../../shared/api";
 import { startReparse, startSync } from "../actions";
+import {
+	formatRelativeTs,
+	formatShortDate,
+	formatShortTs,
+	secsToHours,
+} from "../format";
 import { useFetch } from "../hooks";
 import { servers } from "../live";
 import { serverColor, serverQuery, setSelectedServers } from "../state";
@@ -92,7 +94,7 @@ function StatusCard(props: { s: ServerSummary }) {
 			)}
 			<div class="kv left">
 				<span>Last sync</span>
-				<b>{formatRelative(s.lastSyncAt)}</b>
+				<b>{formatRelativeTs(s.lastSyncAt)}</b>
 				<span>Next sync</span>
 				<b>
 					{nextSync(s)}{" "}
@@ -455,7 +457,7 @@ function StoredData(props: { info: ServerInfo }) {
 					{formatInt(info.files.withErrors)}
 				</b>
 				<span>Last file stored</span>
-				<b>{formatRelative(info.files.lastIngestedAt)}</b>
+				<b>{formatRelativeTs(info.files.lastIngestedAt)}</b>
 				<span>Chat / commands / logins</span>
 				<b>
 					{formatInt(info.events.chat)} / {formatInt(info.events.commands)} /{" "}

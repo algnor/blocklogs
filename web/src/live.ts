@@ -5,7 +5,6 @@ import type { Events, LogEntry } from "../../shared/events";
 import { getJson } from "./api";
 
 const stream = createEventStream<Events>();
-const { subscribe } = stream;
 
 /*
  * Everything that arrives live lives here, as signals the pages read:
@@ -64,7 +63,7 @@ export function startLive() {
 		publish();
 	});
 
-	subscribe("servers", {
+	stream.subscribe("servers", {
 		onEvent: ({ servers: list }) => {
 			base = list;
 			serversError.value = null;
@@ -74,14 +73,14 @@ export function startLive() {
 		pollMs: 3000,
 	});
 
-	subscribe("sync", {
+	stream.subscribe("sync", {
 		onEvent: ({ running: now }) => {
 			running = now;
 			publish();
 		},
 	});
 
-	subscribe("log", {
+	stream.subscribe("log", {
 		onEvent: ({ entries }, { snapshot }) => {
 			activityLog.value = snapshot
 				? entries.slice(-LOG_KEEP)
@@ -92,7 +91,7 @@ export function startLive() {
 	// The first snapshot is what the page already fetched; anything after is news.
 	for (const topic of ["data", "online"] as const) {
 		let first = true;
-		subscribe(topic, {
+		stream.subscribe(topic, {
 			onEvent: (_, { snapshot }) => {
 				if (first && snapshot) {
 					first = false;

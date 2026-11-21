@@ -8,11 +8,11 @@ import {
 	type StyleId,
 } from "@aomc-server/block-ui/theme";
 import { effect, signal } from "@preact/signals";
+import { SETTINGS_KEY } from "./settings-key";
 
-/** What is kept in this browser. The prepaint script in index.html reads the same key. */
+/** What is kept in this browser. The prepaint script injected by vite.config.ts reads the same key. */
 export type Settings = { mode: ModeChoice; style: StyleId };
 
-const KEY = "blocklogs.settings";
 const DEFAULTS: Settings = { mode: "dark", style: "bedrock" };
 
 /** Settings from what was stored; anything missing or invalid is the default. */
@@ -28,7 +28,7 @@ export function parseSettings(raw: string | null): Settings {
 
 function read(): string | null {
 	try {
-		return localStorage.getItem(KEY);
+		return localStorage.getItem(SETTINGS_KEY);
 	} catch {
 		return null;
 	}
@@ -39,7 +39,7 @@ export const settings = signal<Settings>(parseSettings(read()));
 export function updateSettings(patch: Partial<Settings>) {
 	settings.value = { ...settings.value, ...patch };
 	try {
-		localStorage.setItem(KEY, JSON.stringify(settings.value));
+		localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings.value));
 	} catch {
 		// Storage can be unavailable (private mode); the choice then lasts for this visit only.
 	}

@@ -7,14 +7,11 @@ import {
 	rowKey,
 	SortTh,
 } from "@aomc-server/block-ui";
-import {
-	formatHours,
-	formatInt,
-	formatShortDate,
-} from "@aomc-server/block-ui/format";
+import { formatHours, formatInt } from "@aomc-server/block-ui/format";
 import { useDebounced, usePageOffset } from "@aomc-server/block-ui/hooks";
 import { useState } from "preact/hooks";
 import type { PlayerList } from "../../../shared/api";
+import { formatShortDate } from "../format";
 import { useFetch } from "../hooks";
 import { navigate } from "../router";
 import { statsQuery } from "../state";

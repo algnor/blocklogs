@@ -9,11 +9,11 @@ import {
 	rowKey,
 	toast,
 } from "@aomc-server/block-ui";
-import { formatShortTs } from "@aomc-server/block-ui/format";
 import { usePageOffset } from "@aomc-server/block-ui/hooks";
 import { useEffect, useState } from "preact/hooks";
 import type { CrashList, CrashRow } from "../../../shared/api";
 import { getText } from "../api";
+import { formatShortTs } from "../format";
 import { useFetch } from "../hooks";
 import { statsQuery } from "../state";
 import { ServerDot } from "../ui/common";

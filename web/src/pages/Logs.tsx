@@ -1,8 +1,9 @@
 import { Async, Empty, Page, Pager, Tabs } from "@aomc-server/block-ui";
-import { formatElapsed, formatShortTs } from "@aomc-server/block-ui/format";
+import { formatElapsed } from "@aomc-server/block-ui/format";
 import { useDebounced, usePageOffset } from "@aomc-server/block-ui/hooks";
 import { useState } from "preact/hooks";
 import type { MessageList, SessionList } from "../../../shared/api";
+import { formatShortTs } from "../format";
 import { useFetch } from "../hooks";
 import { loc, navigate, setQuery } from "../router";
 import { statsQuery } from "../state";

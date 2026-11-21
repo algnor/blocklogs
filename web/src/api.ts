@@ -36,7 +36,8 @@ async function request(
 			body: body === undefined ? undefined : JSON.stringify(body),
 			signal,
 		});
-	} catch {
+	} catch (e) {
+		if (signal?.aborted || (e as Error).name === "AbortError") throw e;
 		throw new ApiError("Cannot reach the backend", 0);
 	}
 	if (!res.ok) {

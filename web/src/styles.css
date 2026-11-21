@@ -85,6 +85,11 @@ body {
 	margin: 0;
 }
 
+/* An <h2> picks up the library's heading text-shadow; the small-caps title has none. */
+.server-filter .section-title {
+	text-shadow: none;
+}
+
 .server-filter .check {
 	margin: 0;
 }

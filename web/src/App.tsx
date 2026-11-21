@@ -29,7 +29,7 @@ function ServerFilter() {
 	const all = sel.length === 0;
 	return (
 		<div class="server-filter">
-			<div class="section-title">Servers</div>
+			<h2 class="section-title">Servers</h2>
 			{!list && <p class="muted small-text">Loading…</p>}
 			{list && list.length === 0 && <p class="muted small-text">No servers.</p>}
 			{list && list.length > 0 && (

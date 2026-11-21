@@ -3,11 +3,11 @@ import {
 	formatHours,
 	formatInt,
 	formatPercent,
-	secsToHours,
 } from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type { GeoBucket, GeoReport } from "../../../shared/api";
 import { geoCsv } from "../csv";
+import { secsToHours } from "../format";
 import { useFetch } from "../hooks";
 import { statsQuery } from "../state";
 import { PlayerLink } from "../ui/common";

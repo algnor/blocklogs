@@ -65,5 +65,8 @@ export function PlayerLink(props: { name: string }) {
 
 /** What a running sync is doing, for under its progress bar. */
 export function syncLabel(p: SyncProgress): string {
-	return `${p.phase} ${p.done}/${p.total}${p.errors > 0 ? ` · ${p.errors} errors` : ""}${p.current ? ` · ${p.current}` : ""}`;
+	const parts = [`${p.phase} ${p.done}/${p.total}`];
+	if (p.errors > 0) parts.push(`${p.errors} errors`);
+	if (p.current) parts.push(p.current);
+	return parts.join(" · ");
 }

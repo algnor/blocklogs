@@ -14,12 +14,7 @@ import {
 	Toggle,
 	toast,
 } from "@aomc-server/block-ui";
-import {
-	formatBytes,
-	formatInt,
-	formatRelative,
-	formatShortTs,
-} from "@aomc-server/block-ui/format";
+import { formatBytes, formatInt } from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type {
 	AppStatus,
@@ -30,6 +25,7 @@ import type {
 	ServerSummary,
 } from "../../../shared/api";
 import { send } from "../api";
+import { formatRelativeTs, formatShortTs } from "../format";
 import { useFetch } from "../hooks";
 import { settings, updateSettings } from "../settings";
 import { refreshServers, servers, serversError } from "../state";
@@ -152,7 +148,6 @@ function EditModal(props: {
 	return (
 		<Modal
 			title={props.server ? `Edit ${props.server.name}` : "Add server"}
-			closeOnBackdrop
 			onClose={props.onClose}
 			footer={
 				<>
@@ -373,7 +368,6 @@ function ImportModal(props: { onClose: () => void }) {
 	return (
 		<Modal
 			title="Import from panel"
-			closeOnBackdrop
 			onClose={props.onClose}
 			footer={
 				<>
@@ -557,7 +551,7 @@ export function SettingsPage() {
 										<td class="mono wrap">{s.panelId ?? "-"}</td>
 										<td class="num">{s.syncIntervalMin}m</td>
 										<td>
-											{formatRelative(s.lastSyncAt)}{" "}
+											{formatRelativeTs(s.lastSyncAt)}{" "}
 											<span class={`badge ${s.lastSyncStatus ?? ""}`}>
 												{s.lastSyncStatus ?? "never"}
 											</span>

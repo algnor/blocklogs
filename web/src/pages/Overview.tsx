@@ -9,17 +9,14 @@ import {
 	Progress,
 	Tile,
 } from "@aomc-server/block-ui";
-import {
-	formatHours,
-	formatInt,
-	formatRelative,
-} from "@aomc-server/block-ui/format";
+import { formatHours, formatInt } from "@aomc-server/block-ui/format";
 import { useState } from "preact/hooks";
 import type {
 	Overview as OverviewData,
 	ServerSummary,
 } from "../../../shared/api";
 import { startSync } from "../actions";
+import { formatRelativeTs } from "../format";
 import { useFetch } from "../hooks";
 import { navigate } from "../router";
 import {
@@ -77,7 +74,7 @@ function ServerCard(props: { s: ServerSummary }) {
 			)}
 			<div class="kv">
 				<span>Last sync</span>
-				<b>{formatRelative(s.lastSyncAt)}</b>
+				<b>{formatRelativeTs(s.lastSyncAt)}</b>
 				<span>Hours 7d / 30d</span>
 				<b>
 					{formatHours(s.hours7d)} / {formatHours(s.hours30d)}
