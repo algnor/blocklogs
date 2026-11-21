@@ -1,6 +1,10 @@
 services:
   blocklogs:
-    build: .
+    build:
+      context: .
+      # block-ui is a sibling checkout until it is installed from GitHub.
+      additional_contexts:
+        block-ui: ../block-ui
     image: blocklogs
     restart: unless-stopped
     env_file: .env
