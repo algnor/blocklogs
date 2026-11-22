@@ -116,10 +116,25 @@ type ServerList = {
 export async function listPanelServers(
 	conf: PanelConf = config,
 ): Promise<PanelServer[]> {
+	// Root admins can list every server on the panel with `type=admin-all`; for anyone else the
+	// panel ignores it or refuses, so fall back to the servers the account owns or has access to.
+	try {
+		return await listServers("&type=admin-all", conf);
+	} catch (e) {
+		if (!(e instanceof PanelError) || ![400, 403, 404].includes(e.status ?? 0))
+			throw e;
+		return listServers("", conf);
+	}
+}
+
+async function listServers(
+	query: string,
+	conf: PanelConf,
+): Promise<PanelServer[]> {
 	const out: PanelServer[] = [];
 	for (let page = 1; ; page++) {
 		const body = (await (
-			await api(`?page=${page}`, {}, conf)
+			await api(`?page=${page}${query}`, {}, conf)
 		).json()) as ServerList;
 		for (const { attributes: a } of body.data)
 			out.push({

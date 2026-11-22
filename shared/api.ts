@@ -164,6 +164,39 @@ export type PlayerProfile = {
 	recentMessages: MessageRow[];
 };
 
+export type InventoryItem = {
+	/** Minecraft slot number: 0-8 hotbar, 9-35 inventory, 100-103 feet to head, -106 offhand. */
+	slot: number;
+	id: string;
+	count: number;
+	/** Enchantments as `id` -> level. */
+	enchantments: Record<string, number>;
+	name: string | null;
+};
+
+/** GET /api/players/:name/data?server=ID, read live from the server's world folder. */
+export type PlayerData = {
+	player: string;
+	serverId: number;
+	uuid: string;
+	/** Null when the server has no playerdata file for this player. */
+	inventory: {
+		items: InventoryItem[];
+		enderChest: InventoryItem[];
+		health: number | null;
+		food: number | null;
+		xpLevel: number | null;
+		gameMode: number | null;
+		dimension: string | null;
+		position: [number, number, number] | null;
+	} | null;
+	/** Vanilla statistics: category (`minecraft:mined`) -> stat id -> value. Null when missing. */
+	stats: Record<string, Record<string, number>> | null;
+	/** Minecraft version from the server's last boot in its logs; null until logs are re-parsed or if absent. */
+	version: string | null;
+	errors: string[];
+};
+
 export type GeoBucket = {
 	code: string;
 	name: string;

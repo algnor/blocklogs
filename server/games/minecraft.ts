@@ -24,7 +24,7 @@ const CMD = /^(\w{1,16}) issued server command: (.*)/;
 // log the commands players type, but this shows what operators ran. `Server` and `Rcon` are not players.
 const CMD_FEEDBACK = /^\[(\w{1,16}): (.+)\]$/;
 const NOT_PLAYERS = new Set(["Server", "Rcon"]);
-const BOOT = /^Starting minecraft server version/;
+const BOOT = /^Starting minecraft server version\s*(\S+)?/;
 const STOP = /^Stopping (?:the )?server/;
 
 // Cheap pre-filter: a line has to contain one of these to be worth running the regexes on.
@@ -126,7 +126,8 @@ function classify(msg: string): Classified | null {
 	x = CMD_FEEDBACK.exec(msg);
 	if (x && !NOT_PLAYERS.has(x[1] as string))
 		return { type: "cmd", player: x[1] as string, data: x[2] as string };
-	if (BOOT.test(msg)) return { type: "boot", player: null, data: null };
+	x = BOOT.exec(msg);
+	if (x) return { type: "boot", player: null, data: x[1] ?? null };
 	if (STOP.test(msg)) return { type: "stop", player: null, data: null };
 	return null;
 }

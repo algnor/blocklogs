@@ -1,5 +1,6 @@
 import { Avatar, Dot } from "@aomc-server/block-ui";
 import type { ComponentChildren } from "preact";
+import { useState } from "preact/hooks";
 import type { SyncProgress } from "../../../shared/api";
 import { navigate } from "../router";
 import { serverColor, serverName } from "../state";
@@ -54,10 +55,29 @@ export function ServerDots(props: { ids: number[] }) {
 	);
 }
 
+/** A player's head, or the library's initials avatar until (or unless) it loads. */
+export function PlayerHead(props: { name: string; size?: number }) {
+	const [failed, setFailed] = useState(false);
+	if (failed) return <Avatar name={props.name} size={props.size} />;
+	const size = props.size ?? 24;
+	return (
+		<img
+			class="avatar"
+			src={`/api/heads/${encodeURIComponent(props.name)}`}
+			alt={props.name}
+			width={size}
+			height={size}
+			loading="lazy"
+			style={{ "--avatar-size": `${size}px` }}
+			onError={() => setFailed(true)}
+		/>
+	);
+}
+
 export function PlayerLink(props: { name: string }) {
 	return (
 		<Link to={`/players/${encodeURIComponent(props.name)}`} class="player-link">
-			<Avatar name={props.name} size={20} />
+			<PlayerHead name={props.name} size={20} />
 			<span>{props.name}</span>
 		</Link>
 	);

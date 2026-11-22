@@ -36,7 +36,7 @@ describe("log parsing", () => {
 			].join("\n"),
 		);
 		expect(r.events.map((e) => [e.type, e.player, e.data])).toEqual([
-			["boot", null, null],
+			["boot", null, "1.21.1"],
 			["join", "Steve", "1.2.3.4"],
 			["chat", "Steve", "hello there"],
 			["leave", "Steve", null],

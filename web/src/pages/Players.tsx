@@ -1,6 +1,5 @@
 import {
 	Async,
-	Avatar,
 	Empty,
 	Page,
 	Pager,
@@ -15,7 +14,7 @@ import { formatShortDate } from "../format";
 import { useFetch } from "../hooks";
 import { navigate } from "../router";
 import { statsQuery } from "../state";
-import { ServerDots } from "../ui/common";
+import { PlayerHead, ServerDots } from "../ui/common";
 import { DateRange } from "../ui/DateRange";
 
 const LIMIT = 50;
@@ -100,7 +99,7 @@ export function PlayersPage() {
 												>
 													<td>
 														<span class="player-link">
-															<Avatar name={p.player} size={20} />
+															<PlayerHead name={p.player} size={20} />
 															{p.player}
 														</span>
 													</td>

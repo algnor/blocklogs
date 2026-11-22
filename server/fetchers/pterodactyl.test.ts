@@ -173,3 +173,41 @@ test("looks up one server's state in the list, which still answers for a suspend
 	expect((await getPanelServerState("id1", c))?.suspended).toBe(false);
 	expect(await getPanelServerState("nope", c)).toBeNull();
 });
+
+test("asks for every server, and falls back to the account's own when refused", async () => {
+	const urls: string[] = [];
+	const panel = Bun.serve({
+		port: 0,
+		fetch(req) {
+			const u = new URL(req.url);
+			urls.push(u.search);
+			if (u.searchParams.get("type") === "admin-all")
+				return new Response("{}", { status: 403 });
+			return Response.json({
+				data: [
+					{
+						attributes: {
+							identifier: "own",
+							name: "Own",
+							description: "",
+							node: "n",
+							server_owner: true,
+						},
+					},
+				],
+				meta: { pagination: { current_page: 1, total_pages: 1 } },
+			});
+		},
+	});
+	try {
+		const list = await listPanelServers({
+			panelUrl: panel.url.origin,
+			panelKey: "key",
+			ratePerMin: 60_000,
+		});
+		expect(list.map((s) => s.identifier)).toEqual(["own"]);
+		expect(urls).toEqual(["?page=1&type=admin-all", "?page=1"]);
+	} finally {
+		panel.stop(true);
+	}
+});

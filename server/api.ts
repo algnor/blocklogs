@@ -14,8 +14,10 @@ import { listPanelServers, panelConfigured } from "./fetchers/pterodactyl";
 import { sftpConfigured } from "./fetchers/sftp";
 import { games } from "./games";
 import { geoReady } from "./geo";
+import { playerHead, validHeadName } from "./heads";
 import { announceData, announceServers, serversSnapshot } from "./live";
 import { activity } from "./log";
+import { readPlayerData } from "./playerdata";
 import * as stats from "./stats";
 import { reparseServer, syncServer } from "./sync";
 import { isSyncing } from "./syncstate";
@@ -353,6 +355,29 @@ api.get("/players", (c) => {
 			offset: intParam(r.query("offset"), 0, 1e9),
 		}),
 	);
+});
+
+api.get("/heads/:name", async (c) => {
+	const name = c.req.param("name");
+	const png = validHeadName(name) ? await playerHead(name) : null;
+	if (!png) return c.body(null, 404);
+	return new Response(png as BodyInit, {
+		headers: {
+			"content-type": "image/png",
+			"cache-control": "public, max-age=86400",
+		},
+	});
+});
+
+api.get("/players/:name/data", async (c) => {
+	const id = Number(c.req.query("server"));
+	if (!Number.isInteger(id)) throw new HttpError(400, "server is required");
+	const server = getServer(id);
+	try {
+		return c.json(await readPlayerData(server, c.req.param("name")));
+	} catch (e) {
+		throw new HttpError(502, (e as Error).message);
+	}
 });
 
 api.get("/players/:name", (c) => {

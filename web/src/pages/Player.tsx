@@ -1,12 +1,4 @@
-import {
-	Async,
-	Avatar,
-	Card,
-	Empty,
-	Page,
-	Tile,
-	Toggle,
-} from "@aomc-server/block-ui";
+import { Async, Card, Empty, Page, Tile, Toggle } from "@aomc-server/block-ui";
 import {
 	formatElapsed,
 	formatHours,
@@ -17,7 +9,8 @@ import type { PlayerProfile } from "../../../shared/api";
 import { formatShortTs } from "../format";
 import { useFetch } from "../hooks";
 import { buildSearch } from "../router";
-import { Link, ServerDot, ServerDots } from "../ui/common";
+import { Link, PlayerHead, ServerDot, ServerDots } from "../ui/common";
+import { PlayerDataCard } from "../ui/PlayerData";
 
 export function PlayerPage(props: { name: string }) {
 	const state = useFetch<PlayerProfile>(
@@ -52,7 +45,7 @@ export function PlayerPage(props: { name: string }) {
 					return (
 						<>
 							<div class="profile-head">
-								<Avatar name={p.player} size={48} />
+								<PlayerHead name={p.player} size={48} />
 								<ServerDots ids={p.perServer.map((s) => s.serverId)} />
 							</div>
 							<div class="tiles">
@@ -102,6 +95,11 @@ export function PlayerPage(props: { name: string }) {
 									</table>
 								</div>
 							</Card>
+
+							<PlayerDataCard
+								player={p.player}
+								serverIds={p.perServer.map((s) => s.serverId)}
+							/>
 
 							<Card title="UUIDs">
 								{p.uuids.length === 0 ? (
